@@ -17,17 +17,19 @@ exports.createCheckoutSession = async (items = [], successUrl, cancelUrl, metada
         payment_method_types: ['card'],
         line_items,
         mode: 'payment',
-        success_url: successUrl,
+        invoice_creation: {
+            enabled: true,
+        },
+        success_url: successUrl + '?session_id={CHECKOUT_SESSION_ID}',
         cancel_url: cancelUrl,
         metadata,
-        //     payment_intent_data: {
-        //         payment_method_options: {
-        //             promptpay: {
-        //                 setup_future_usage: 'off'
-        //             }
-        //         }
+
+        // payment_method_options: {
+        //     promptpay: {
+        //         setup_future_usage: 'off',
         //     }
-        //     // currency: 'thb' // เปลี่ยนสกุลเงินเป็นบาท
+        // },
+        // currency: 'thb' // เปลี่ยนสกุลเงินเป็นบาท
     });
 
     return session;

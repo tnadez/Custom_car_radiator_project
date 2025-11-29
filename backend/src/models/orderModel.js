@@ -1,14 +1,14 @@
 const { pool } = require('../config/db');
 
-exports.create = async ({ items = [], total = 0, customer_email = null, status = 'pending', stripe_session_id = null }) => {
+exports.create = async ({ items = [], total = 0, customer_email = null, customer_name = null, customer_phone = null, address = null, status = 'pending', stripe_session_id = null }) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         // coerce total to a Number (Postgres numeric will accept a JS number)
         const safeTotal = Number(total) || 0;
         const res = await client.query(
-            'INSERT INTO orders(total, customer_email, status, stripe_session_id) VALUES($1,$2,$3,$4) RETURNING *',
-            [safeTotal, customer_email, status, stripe_session_id]
+            'INSERT INTO orders(total, customer_email, customer_name, customer_phone, address, status, stripe_session_id) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *',
+            [safeTotal, customer_email, customer_name, customer_phone, address, status, stripe_session_id]
         );
         const order = res.rows[0];
 
@@ -18,14 +18,19 @@ exports.create = async ({ items = [], total = 0, customer_email = null, status =
             let productId = null;
             if (rawPid !== null && rawPid !== undefined) {
                 const n = Number(rawPid);
-                if (Number.isFinite(n)) {
+                if (Number.isFinite(n) && n > 0) { // Must be positive and valid
                     const truncated = Math.trunc(n);
                     // 32-bit signed integer safe range for Postgres `integer` type
-                    if (truncated >= -2147483648 && truncated <= 2147483647) {
-                        productId = truncated;
-                    } else {
-                        // out of range — leave null (or consider altering DB to bigint)
-                        productId = null;
+                    if (truncated >= 1 && truncated <= 2147483647) {
+                        // Verify product exists in products table before using as FK
+                        const checkProduct = await client.query(
+                            'SELECT id FROM products WHERE id = $1',
+                            [truncated]
+                        );
+                        if (checkProduct.rows.length > 0) {
+                            productId = truncated;
+                        }
+                        // If product doesn't exist, leave productId as null
                     }
                 }
             }

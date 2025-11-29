@@ -5,6 +5,8 @@ const productsRouter = require('./src/routes/products');
 const checkoutRouter = require('./src/routes/checkout');
 const ordersRouter = require('./src/routes/orders');
 const webhookRouter = require('./src/routes/webhook');
+const marketRouter = require('./src/routes/market');
+const verifySessionRouter = require('./src/routes/verifySession');
 const errorHandler = require('./src/middleware/errorHandler');
 const db = require('./src/config/db');
 
@@ -31,6 +33,8 @@ app.use(express.json());
 app.use('/api/products', productsRouter);
 app.use('/api/checkout', checkoutRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api/market', marketRouter);
+app.use('/api/verify-session', verifySessionRouter);
 
 // Stripe webhook endpoint requires raw body for signature verification
 app.use('/webhook', express.raw({ type: 'application/json' }), webhookRouter);

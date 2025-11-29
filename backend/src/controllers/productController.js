@@ -19,10 +19,11 @@ exports.getProduct = async (req, res, next) => {
     }
 };
 
+
 exports.createProduct = async (req, res, next) => {
     try {
-        const { name, price, description } = req.body;
-        const created = await productService.create({ name, price, description });
+        // Accept all fields from req.body
+        const created = await productService.create(req.body);
         res.status(201).json(created);
     } catch (err) {
         next(err);
